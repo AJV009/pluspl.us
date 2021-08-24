@@ -10,7 +10,7 @@ itsdangerous==1.1.0
 Jinja2==2.11.2
 markdown==3.3.3
 MarkupSafe==1.1.1
-psycopg2==2.8.6
+psycopg2-binary
 requests==2.24.0
 sentry-sdk==0.14.4
 six==1.15.0
