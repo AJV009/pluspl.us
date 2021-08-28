@@ -5,9 +5,10 @@ from plusplus.operations.reset import generate_reset_block
 from plusplus.models import db, SlackTeam, Thing
 from flask import request
 import pandas as pd
-import io
-import requests
-import re
+import io, re, os, requests
+from dotenv import load_dotenv
+# vars in .env
+load_dotenv()
 
 user_exp = re.compile(r"<@([A-Za-z0-9]+)> *(\+\+|\-\-|==)")
 thing_exp = re.compile(r"#([A-Za-z0-9\.\-_@$!\*\(\)\,\?\/%\\\^&\[\]\{\"':; ]+)(\+\+|\-\-|==)")
@@ -110,14 +111,20 @@ def process_incoming_message(event_data):
             blocks=generate_reset_block()
         )
     elif "import" in message and team.bot_user_id.lower() in message:
-        message = "Your team's data will be importted from old pluspl.us db"  # noqa: E501
+        message = "Your team's data will be importted from old pluspl.us db, valid till Aug 31"  # noqa: E501
         # import csv using pd from project dir
-        url="https://plusplusserver.herokuapp.com/archive/b536568a-40b4-4ff1-aecc-7da071c4c8e4.csv"
-        s=requests.get(url).content
+        s=requests.get(os.environ.get("OLD_DB_URL")).content
         dump=pd.read_csv(io.StringIO(s.decode('utf-8')))
         for index, row in dump.iterrows():
-            thing = Thing(id=row['id'], item=row['item'], points=row['points'], user=row['is_user'], last_modified=row['last_modified'], team_id='T026H1FUT')
-            db.session.add(thing)
+            # check if user exists, if yes then update, if not create
+            user = Thing.query.filter_by(item=row['item']).first()
+            if not user:
+                thing = Thing(id=row['id'], item=row['item'], points=row['points'], user=row['is_user'], last_modified=row['last_modified'], team_id='T026H1FUT')
+                db.session.add(thing)
+            else:
+                user.points = row['points']
+                user.last_modified = row['last_modified']
             db.session.commit()
+
         post_message(message, team, channel, thread_ts)
     return "OK", 200

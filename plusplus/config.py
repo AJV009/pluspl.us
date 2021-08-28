@@ -1,4 +1,7 @@
+from dotenv import load_dotenv
 import os
+# vars in .env
+load_dotenv()
 
 VERSION = 0.1
 NAME = os.environ.get("NAME")
