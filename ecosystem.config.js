@@ -1,6 +1,6 @@
 module.exports = {
   apps : [{
-    script: 'gunicorn --chdir /home/user/PROJECTS/pluspl.us/ wsgi:application',
+    script: 'gunicorn --chdir /home/ubuntu/plusplusbot/ wsgi:application',
     watch: true
   }]
 };
